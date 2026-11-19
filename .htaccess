@@ -1,0 +1,31 @@
+# ========================================================
+# Apache Configuration for Basic_CRM (HostGator Shared Hosting)
+# ========================================================
+
+# Enable CGI execution
+Options +ExecCGI
+AddHandler cgi-script .cgi .py
+DirectoryIndex index.cgi index.html
+
+# Prevent direct access to .env and database schema
+<FilesMatch "^\.env|schema\.sql">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# URL Routing through CGI Handler
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Serve static assets directly (CSS, JS, images)
+    RewriteRule ^static/(.*)$ static/$1 [L]
+
+    # If requested file or directory exists physically, serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Route all other web requests to the Flask CGI handler
+    RewriteRule ^(.*)$ index.cgi/$1 [L,QSA]
+</IfModule>
