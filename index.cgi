@@ -1,37 +1,44 @@
 #!/usr/bin/python3
 """
-CGI Handler entry point for running Flask on shared hosting (HostGator)
-Supports user site-packages from 'pip install --user'.
+Bulletproof CGI Handler for Basic_CRM on HostGator Shared Hosting.
+Guarantees full error traceback display in the browser if any exception occurs.
 """
 
 import sys
 import os
 import glob
-import cgitb
+import traceback
 
-# Enable browser error display for debugging
-cgitb.enable()
-
-# Ensure project root is in sys.path
+# 1. Add application directory to sys.path
 app_dir = os.path.dirname(os.path.abspath(__file__))
 if app_dir not in sys.path:
     sys.path.insert(0, app_dir)
 
-# Ensure user-installed packages from 'pip install --user' are included in CGI mode
+# 2. Add user-installed site-packages from 'pip install --user'
 user_sites = glob.glob(os.path.expanduser("~/.local/lib/python*/site-packages"))
-for site_path in user_sites:
-    if site_path not in sys.path:
-        sys.path.insert(0, site_path)
+for p in user_sites:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-# Also check explicit home path for cPanel user if expanduser is restricted
-home_dir = f"/home/{os.environ.get('USER', 'upayssmk')}"
-cpanel_sites = glob.glob(f"{home_dir}/.local/lib/python*/site-packages")
-for cp_path in cpanel_sites:
-    if cp_path not in sys.path:
-        sys.path.insert(0, cp_path)
+# 3. Add explicit cPanel home site-packages path
+cpanel_sites = glob.glob("/home/upayssmk/.local/lib/python*/site-packages")
+for p in cpanel_sites:
+    if p not in sys.path:
+        sys.path.insert(0, p)
 
-from wsgiref.handlers import CGIHandler
-from app import app
-
-if __name__ == "__main__":
+try:
+    from wsgiref.handlers import CGIHandler
+    from app import app
     CGIHandler().run(app)
+except Exception:
+    # Ensure headers are sent so the browser displays the exact Python error
+    print("Status: 500 Internal Server Error")
+    print("Content-Type: text/html; charset=utf-8\n")
+    print("<div style='font-family:sans-serif;max-width:800px;margin:30px auto;padding:20px;border:1px solid #e3342f;border-radius:6px;'>")
+    print("<h2 style='color:#e3342f;margin-top:0;'>⚠️ CRM Application Startup Error</h2>")
+    print("<p>The server encountered an error while starting the Flask application:</p>")
+    print("<pre style='background:#f8f9fa;padding:15px;border-radius:4px;overflow-x:auto;color:#333;font-size:13px;'>")
+    print(traceback.format_exc())
+    print("</pre>")
+    print("<p style='color:#666;font-size:12px;'>Tip: Verify database password in .env or config.py and ensure all dependencies are installed.</p>")
+    print("</div>")
