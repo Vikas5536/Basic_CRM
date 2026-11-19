@@ -34,6 +34,7 @@ def get_db_connection(use_database=True):
             "user": Config.MYSQL_USER,
             "password": Config.MYSQL_PASSWORD,
             "charset": "utf8mb4",
+            "collation": "utf8mb4_unicode_ci",
         }
         if use_database:
             connection_params["database"] = Config.MYSQL_DATABASE
@@ -52,6 +53,7 @@ def get_db_connection(use_database=True):
             "user": Config.MYSQL_USER,
             "password": Config.MYSQL_PASSWORD,
             "charset": "utf8mb4",
+            "collation": "utf8mb4_unicode_ci",
             "cursorclass": pymysql.cursors.DictCursor,
             "autocommit": False,
         }
