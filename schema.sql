@@ -1,5 +1,5 @@
 -- =======================================================
--- Basic_CRM Database Schema
+-- CoustomerManagementRelationship Database Schema
 -- Database Name: upayssmk_sidak_crm
 -- Target: MySQL 5.7+ / 8.0+ / Percona Server
 -- =======================================================

@@ -1,4 +1,4 @@
-# Basic_CRM - Deployment & Configuration Guide
+# CoustomerManagementRelationship - Deployment & Configuration Guide
 
 यह प्रोजेक्ट आपकी HostGator cPanel होस्टिंग और MySQL डेटाबेस के अनुसार पूरी तरह कॉन्फ़िगर कर दिया गया है।
 
@@ -20,7 +20,7 @@
 
 ## 2. पासवर्ड कहाँ डालना है? (Where to set password)
 
-प्रोजेक्ट के रूट फ़ोल्डर में [`.env`](file:///Users/vikaschauhan/Documents/CRM/Basic_CRM/.env) फ़ाइल तैयार है:
+प्रोजेक्ट के रूट फ़ोल्डर में `.env` फ़ाइल तैयार है:
 
 ```env
 # Flask Secret Key

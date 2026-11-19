@@ -1,5 +1,5 @@
 """
-Comprehensive Test Suite for Basic_CRM
+Comprehensive Test Suite for CoustomerManagementRelationship
 Tests end-to-end workflows for Contacts, Leads, Customers, and Dashboard.
 """
 
@@ -10,7 +10,7 @@ from db import query_one, query_all, execute_commit, init_db
 
 def run_tests():
     print("=" * 60)
-    print("RUNNING Basic_CRM END-TO-END TEST SUITE")
+    print("RUNNING CoustomerManagementRelationship END-TO-END TEST SUITE")
     print("=" * 60)
 
     # 1. Initialize Database

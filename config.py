@@ -11,7 +11,7 @@ else:
 
 class Config:
     """Application configuration for hosting and development."""
-    SECRET_KEY = os.getenv("SECRET_KEY", "sidak-crm-secret-key-production-2026")
+    SECRET_KEY = os.getenv("SECRET_KEY", "coustomer-management-relationship-secret-key-2026")
 
     # MySQL Database Configuration (HostGator cPanel Defaults)
     MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")

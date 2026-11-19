@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 """
-Bulletproof CGI Handler for Basic_CRM on HostGator Shared Hosting.
-Guarantees full error traceback display in the browser if any exception occurs.
+Bulletproof CGI Handler for CoustomerManagementRelationship on HostGator Shared Hosting.
+Supports CLI testing and web execution via Apache.
 """
 
 import sys
@@ -25,6 +25,22 @@ cpanel_sites = glob.glob("/home/upayssmk/.local/lib/python*/site-packages")
 for p in cpanel_sites:
     if p not in sys.path:
         sys.path.insert(0, p)
+
+# 4. CLI test fallback: populate CGI environment variables if executed from terminal
+if "REQUEST_METHOD" not in os.environ:
+    os.environ["REQUEST_METHOD"] = "GET"
+if "SERVER_NAME" not in os.environ:
+    os.environ["SERVER_NAME"] = "localhost"
+if "SERVER_PORT" not in os.environ:
+    os.environ["SERVER_PORT"] = "80"
+if "PATH_INFO" not in os.environ:
+    os.environ["PATH_INFO"] = "/"
+if "SCRIPT_NAME" not in os.environ:
+    os.environ["SCRIPT_NAME"] = ""
+if "SERVER_PROTOCOL" not in os.environ:
+    os.environ["SERVER_PROTOCOL"] = "HTTP/1.1"
+if "QUERY_STRING" not in os.environ:
+    os.environ["QUERY_STRING"] = ""
 
 try:
     from wsgiref.handlers import CGIHandler

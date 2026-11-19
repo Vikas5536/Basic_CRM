@@ -1,5 +1,5 @@
 """
-Database management helper for Basic_CRM.
+Database management helper for CoustomerManagementRelationship.
 Handles connection pooling, query execution, and database schema initialization.
 Supports both mysql-connector-python and PyMySQL.
 """

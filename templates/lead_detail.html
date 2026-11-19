@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ lead.full_name }} - Lead Details{% endblock %}
+{% block title %}{{ lead.full_name }} - Lead Details - CoustomerManagementRelationship{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -10,6 +10,13 @@
     </div>
     <div class="action-buttons">
         <a href="{{ url_for('leads_list') }}" class="btn btn-secondary">&larr; Back to Leads</a>
+        {% if lead.status != 'Converted' %}
+            <form method="POST" action="{{ url_for('lead_convert', lead_id=lead.id) }}" style="display: inline;">
+                <button type="submit" class="btn btn-success" style="background-color: var(--success, #28a745); border-color: var(--success, #28a745); color: #fff;">
+                    ✓ Convert to Customer
+                </button>
+            </form>
+        {% endif %}
         <a href="{{ url_for('lead_edit', lead_id=lead.id) }}" class="btn btn-primary">Edit Lead</a>
         <form 
             method="POST" 

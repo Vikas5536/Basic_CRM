@@ -1,5 +1,5 @@
 /**
- * Basic_CRM - Vanilla JavaScript
+ * CoustomerManagementRelationship - Vanilla JavaScript
  * Handles delete confirmations, alert dismissals, and simple client-side form helpers.
  */
 

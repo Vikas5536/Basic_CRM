@@ -1,5 +1,5 @@
 """
-cPanel Phusion Passenger WSGI entry point for Basic_CRM.
+cPanel Phusion Passenger WSGI entry point for CoustomerManagementRelationship.
 Enables running the Flask application under cPanel 'Setup Python App'.
 """
 

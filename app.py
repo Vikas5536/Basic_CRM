@@ -1,5 +1,5 @@
 """
-Sidak_CRM - Beginner-Friendly Local CRM
+CoustomerManagementRelationship - Modern CRM
 Tech Stack: Python, Flask, MySQL, HTML5, CSS, Vanilla JavaScript
 """
 
@@ -304,6 +304,60 @@ def lead_detail(lead_id):
         return redirect(url_for("leads_list"))
     return render_template("lead_detail.html", lead=lead, lead_statuses=LEAD_STATUSES)
 
+def convert_lead_to_customer(lead_id):
+    """
+    Automatically converts a lead into a customer record in the `customers` table.
+    Sets the lead status to 'Converted'.
+    Returns (success: bool, customer_id: int or None, message: str)
+    """
+    lead = query_one("SELECT * FROM leads WHERE id = %s", (lead_id,))
+    if not lead:
+        return False, None, "Lead not found."
+
+    email = (lead.get("email") or "").strip()
+    if not email:
+        clean_name = re.sub(r"[^a-zA-Z0-9]", "", lead["full_name"].lower())
+        email = f"{clean_name or 'lead'}_{lead['id']}@crm.customer"
+
+    # Check if a customer already exists with this email or full name + phone
+    existing_customer = query_one("SELECT id, full_name FROM customers WHERE email = %s", (email,))
+    if not existing_customer and lead.get("phone"):
+        existing_customer = query_one(
+            "SELECT id, full_name FROM customers WHERE full_name = %s AND phone = %s",
+            (lead["full_name"], lead["phone"])
+        )
+
+    if existing_customer:
+        execute_commit("UPDATE leads SET status = 'Converted' WHERE id = %s", (lead_id,))
+        return True, existing_customer["id"], f"Lead '{lead['full_name']}' converted! (Linked to existing customer '{existing_customer['full_name']}')"
+
+    notes_parts = []
+    if lead.get("source"):
+        notes_parts.append(f"Original Lead Source: {lead['source']}")
+    if lead.get("notes"):
+        notes_parts.append(lead["notes"])
+    notes_content = f"Converted from Lead #{lead['id']}.\n" + "\n".join(notes_parts)
+
+    sql = """
+        INSERT INTO customers (full_name, email, phone, company, address, notes)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """
+    success, result = execute_commit(sql, (
+        lead["full_name"],
+        email,
+        lead.get("phone") or "",
+        lead.get("company") or "",
+        "",
+        notes_content.strip()
+    ))
+
+    if success:
+        execute_commit("UPDATE leads SET status = 'Converted' WHERE id = %s", (lead_id,))
+        return True, result, f"Lead '{lead['full_name']}' successfully converted to Customer!"
+    else:
+        return False, None, f"Failed to create customer: {result}"
+
+
 @app.route("/leads/<int:lead_id>/edit", methods=["GET", "POST"])
 def lead_edit(lead_id):
     """Edit an existing lead."""
@@ -339,6 +393,10 @@ def lead_edit(lead_id):
         """
         success, _ = execute_commit(sql, (full_name, email, phone, company, source, status, notes, lead_id))
         if success:
+            if status == "Converted":
+                convert_lead_to_customer(lead_id)
+                flash(f"Lead '{full_name}' updated and automatically converted to Customer!", "success")
+                return redirect(url_for("customers_list"))
             flash(f"Lead '{full_name}' updated successfully!", "success")
             return redirect(url_for("lead_detail", lead_id=lead_id))
         else:
@@ -351,14 +409,34 @@ def lead_quick_status(lead_id):
     """Quickly update a lead's status directly from detail view."""
     new_status = sanitize_text(request.form.get("status"))
     if new_status in LEAD_STATUSES:
-        success, _ = execute_commit("UPDATE leads SET status = %s WHERE id = %s", (new_status, lead_id))
-        if success:
-            flash(f"Lead status updated to '{new_status}'.", "success")
+        if new_status == "Converted":
+            ok, cust_id, msg = convert_lead_to_customer(lead_id)
+            if ok:
+                flash(msg, "success")
+                return redirect(url_for("customers_list"))
+            else:
+                flash(msg, "danger")
+                return redirect(url_for("lead_detail", lead_id=lead_id))
         else:
-            flash("Could not update status.", "danger")
+            success, _ = execute_commit("UPDATE leads SET status = %s WHERE id = %s", (new_status, lead_id))
+            if success:
+                flash(f"Lead status updated to '{new_status}'.", "success")
+            else:
+                flash("Could not update status.", "danger")
     else:
         flash("Invalid status selected.", "warning")
     return redirect(url_for("lead_detail", lead_id=lead_id))
+
+@app.route("/leads/<int:lead_id>/convert", methods=["POST"])
+def lead_convert(lead_id):
+    """Direct one-click action to convert a lead to a customer."""
+    ok, cust_id, msg = convert_lead_to_customer(lead_id)
+    if ok:
+        flash(msg, "success")
+        return redirect(url_for("customers_list"))
+    else:
+        flash(msg, "danger")
+        return redirect(url_for("lead_detail", lead_id=lead_id))
 
 @app.route("/leads/<int:lead_id>/delete", methods=["POST"])
 def lead_delete(lead_id):
@@ -503,5 +581,5 @@ def customer_delete(customer_id):
 if __name__ == "__main__":
     # Ensure database tables exist upon start
     init_db()
-    print("Starting Basic_CRM locally on http://127.0.0.1:5000 ...")
+    print("Starting CoustomerManagementRelationship locally on http://127.0.0.1:5000 ...")
     app.run(host="127.0.0.1", port=5000, debug=True)
