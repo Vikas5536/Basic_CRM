@@ -18,6 +18,7 @@ def get_db_connection(use_database=True):
         "port": Config.MYSQL_PORT,
         "user": Config.MYSQL_USER,
         "password": Config.MYSQL_PASSWORD,
+        "charset": "utf8mb4",
     }
     if use_database:
         connection_params["database"] = Config.MYSQL_DATABASE
@@ -33,8 +34,10 @@ def get_db_connection(use_database=True):
 def init_db(schema_path="schema.sql"):
     """
     Initializes the database and tables defined in schema.sql.
-    Safe: Creates 'crm_db' if it does not exist, and creates tables with IF NOT EXISTS.
-    Does not touch or modify any other existing databases.
+    Safe for hosting:
+    - Connects directly to Config.MYSQL_DATABASE first.
+    - Runs CREATE TABLE IF NOT EXISTS while skipping CREATE DATABASE and USE commands.
+    - If connecting to the target database fails, falls back to connecting without a database (local dev).
     """
     if not os.path.isabs(schema_path):
         schema_path = os.path.join(os.path.dirname(__file__), schema_path)
@@ -48,20 +51,37 @@ def init_db(schema_path="schema.sql"):
     # Split commands by semicolon (ignoring comments/empty blocks)
     raw_statements = schema_sql.split(";")
     
-    # Connect without specific database to create database if needed
-    conn = get_db_connection(use_database=False)
+    # First try connecting directly to the target database (cPanel hosting best practice)
+    conn = get_db_connection(use_database=True)
+    connected_to_db = True
+
+    # Fallback if database doesn't exist yet (e.g. fresh local installation)
     if not conn:
-        return False, "Failed to connect to MySQL server. Please ensure MySQL is running."
+        conn = get_db_connection(use_database=False)
+        connected_to_db = False
+
+    if not conn:
+        return False, (
+            f"Failed to connect to MySQL server. Please verify your host '{Config.MYSQL_HOST}', "
+            f"user '{Config.MYSQL_USER}', and password in .env or config.py."
+        )
 
     cursor = None
     try:
         cursor = conn.cursor()
         for stmt in raw_statements:
             cleaned_stmt = stmt.strip()
-            if cleaned_stmt:
-                cursor.execute(cleaned_stmt)
+            if not cleaned_stmt:
+                continue
+
+            upper_stmt = cleaned_stmt.upper()
+            # If already connected to target database, skip CREATE DATABASE and USE statements
+            if connected_to_db and (upper_stmt.startswith("CREATE DATABASE") or upper_stmt.startswith("USE ")):
+                continue
+
+            cursor.execute(cleaned_stmt)
         conn.commit()
-        return True, "Database 'crm_db' and tables initialized successfully."
+        return True, f"Database '{Config.MYSQL_DATABASE}' and tables verified successfully."
     except Error as err:
         return False, f"Error initializing database: {err}"
     finally:

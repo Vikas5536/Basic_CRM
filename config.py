@@ -1,17 +1,21 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables from local .env if present
-load_dotenv()
+# Ensure .env is loaded reliably even if running via WSGI/cPanel
+basedir = os.path.abspath(os.path.dirname(__file__))
+env_file = os.path.join(basedir, ".env")
+if os.path.exists(env_file):
+    load_dotenv(env_file)
+else:
+    load_dotenv()
 
 class Config:
-    """Application configuration for local development."""
-    SECRET_KEY = os.getenv("SECRET_KEY", "sidak-crm-secret-key-local-only")
+    """Application configuration for hosting and development."""
+    SECRET_KEY = os.getenv("SECRET_KEY", "sidak-crm-secret-key-production-2026")
 
-    # Local MySQL Database Configuration
-    # Safe default: host is 127.0.0.1, user is root, password is empty (Enter on prompt)
-    MYSQL_HOST = os.getenv("MYSQL_HOST", "127.0.0.1")
+    # MySQL Database Configuration (HostGator cPanel Defaults)
+    MYSQL_HOST = os.getenv("MYSQL_HOST", "localhost")
     MYSQL_PORT = int(os.getenv("MYSQL_PORT", 3306))
-    MYSQL_USER = os.getenv("MYSQL_USER", "root")
+    MYSQL_USER = os.getenv("MYSQL_USER", "upayssmk_sidak")
     MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD", "")
-    MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "crm_db")
+    MYSQL_DATABASE = os.getenv("MYSQL_DATABASE", "upayssmk_sidak_crm")

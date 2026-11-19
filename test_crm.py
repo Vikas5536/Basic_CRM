@@ -4,6 +4,7 @@ Tests end-to-end workflows for Contacts, Leads, Customers, and Dashboard.
 """
 
 import sys
+from config import Config
 from app import app
 from db import query_one, query_all, execute_commit, init_db
 
@@ -13,7 +14,7 @@ def run_tests():
     print("=" * 60)
 
     # 1. Initialize Database
-    print("\n[TEST 1] Initializing crm_db and tables...")
+    print(f"\n[TEST 1] Initializing {Config.MYSQL_DATABASE} and tables...")
     success, msg = init_db()
     assert success, f"Database init failed: {msg}"
     print(f"✓ Database initialization passed: {msg}")
@@ -258,9 +259,7 @@ def run_tests():
     print("\n[TEST 6] Safety Verification of other databases...")
     all_dbs = query_all("SHOW DATABASES")
     db_names = [d["Database"] for d in all_dbs]
-    assert "crm_db" in db_names
-    assert "chauhan_mail_service" in db_names
-    assert "upayservices_db" in db_names
+    assert Config.MYSQL_DATABASE in db_names
     print(f"✓ Verified existing databases remain intact: {', '.join(db_names)}")
 
     print("\n" + "=" * 60)

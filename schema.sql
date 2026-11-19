@@ -1,15 +1,15 @@
 -- =======================================================
 -- Basic_CRM Database Schema
--- Database Name: crm_db
--- Target: MySQL 8.0+ / 9.x
+-- Database Name: upayssmk_sidak_crm
+-- Target: MySQL 5.7+ / 8.0+ / Percona Server
 -- =======================================================
 
--- 1. Create database safely without affecting existing databases
-CREATE DATABASE IF NOT EXISTS crm_db
+-- 1. Create database safely (for local dev setup)
+CREATE DATABASE IF NOT EXISTS upayssmk_sidak_crm
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
 
-USE crm_db;
+USE upayssmk_sidak_crm;
 
 -- 2. Contacts Table
 CREATE TABLE IF NOT EXISTS contacts (
